@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Διαχείριση | ΓΛΥΚΑ ΝΕ (Ρ) Α</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 24px;
+      color: #172554;
+    }
+    main {
+      max-width: 650px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 5px 22px #0001;
+    }
+    h1 { color: #b91c1c; }
+    label { display: block; margin-top: 16px; font-weight: bold; }
+    input, textarea, select {
+      box-sizing: border-box;
+      width: 100%;
+      margin-top: 7px;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font: inherit;
+    }
+    textarea { min-height: 180px; resize: vertical; }
+    button {
+      margin-top: 20px;
+      padding: 13px 18px;
+      background: #b91c1c;
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #status { white-space: pre-wrap; margin-top: 16px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>📰 Διαχειριστής εφημερίδας</h1>
+  <p>ΓΛΥΚΑ ΝΕ (Ρ) Α — Νέο άρθρο</p>
+
+  <form id="articleForm">
+    <label for="password">Κωδικός διαχειριστή</label>
+    <input id="password" type="password" required
+      autocomplete="current-password">
+
+    <label for="title">Τίτλος άρθρου</label>
+    <input id="title" maxlength="150" required>
+
+    <label for="category">Κατηγορία</label>
+    <select id="category" required>
+      <option value="Τοπικά νέα">Τοπικά νέα</option>
+      <option value="Σχολείο">Σχολείο</option>
+      <option value="Αθλητισμός">Αθλητισμός</option>
+      <option value="Πολιτισμός">Πολιτισμός</option>
+      <option value="Άλλα νέα">Άλλα νέα</option>
+    </select>
+
+    <label for="content">Κείμενο άρθρου</label>
+    <textarea id="content" maxlength="20000" required></textarea>
+
+    <button type="submit">Δημοσίευση άρθρου</button>
+  </form>
+
+  <p id="status" role="status"></p>
+</main>
+
+<script>
+const form = document.getElementById("articleForm");
+const statusBox = document.getElementById("status");
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  statusBox.textContent = "Γίνεται δημοσίευση...";
+
+  try {
+    const response = await fetch("/api/articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        password: document.getElementById("password").value,
+        title: document.getElementById("title").value,
+        category: document.getElementById("category").value,
+        content: document.getElementById("content").value
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Η δημοσίευση απέτυχε.");
+    }
+
+    statusBox.textContent = "✅ Το άρθρο αποθηκεύτηκε!";
+    form.reset();
+  } catch (error) {
+    statusBox.textContent = "❌ " + error.message;
+  }
+});
+</script>
+</body>
+</html>
