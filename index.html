@@ -57,17 +57,162 @@
   <footer><div class="wrap"><div><strong>ΓΛΥΚΑ ΝΕ (Ρ) Α</strong><p>Τα νέα της γειτονιάς μας.</p></div><div><p>© <span id="year"></span> ΓΛΥΚΑ ΝΕ (Ρ) Α</p><p>Οι ειδήσεις και τα άρθρα πρέπει να ελέγχονται πριν από τη δημοσίευση.</p></div></div></footer>
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-panel"><button class="modal-close" id="closeModal" aria-label="Κλείσιμο">Κλείσιμο ✕</button><span class="kicker">ΓΛΥΚΑ ΝΕ (Ρ) Α</span><h2 id="modalTitle"></h2><p id="modalBody"></p></div></div>
   <script>
-    const search=document.getElementById('search');
-    const cards=[...document.querySelectorAll('.article')];
-    const filterButtons=[...document.querySelectorAll('[data-filter]')];
-    let currentFilter='Όλα';
-    function applyFilters(){const q=search.value.trim().toLocaleLowerCase('el');let shown=0;cards.forEach(card=>{const category=card.dataset.category;const text=(card.dataset.title+' '+card.innerText).toLocaleLowerCase('el');const match=(currentFilter==='Όλα'||category===currentFilter)&&text.includes(q);card.style.display=match?'flex':'none';if(match)shown++;});document.getElementById('empty').style.display=shown?'none':'block';}
-    filterButtons.forEach(btn=>btn.addEventListener('click',()=>{currentFilter=btn.dataset.filter;filterButtons.forEach(b=>b.classList.toggle('active',b===btn));applyFilters();}));
-    search.addEventListener('input',applyFilters);
-    document.querySelectorAll('[data-nav-filter]').forEach(link=>link.addEventListener('click',()=>{currentFilter=link.dataset.navFilter;filterButtons.forEach(b=>b.classList.toggle('active',b.dataset.filter===currentFilter));applyFilters();}));
-    const modal=document.getElementById('modal');
-    document.querySelectorAll('[data-open]').forEach(btn=>btn.addEventListener('click',()=>{const content=document.getElementById(btn.dataset.open);document.getElementById('modalTitle').textContent=content.dataset.heading;document.getElementById('modalBody').textContent=content.dataset.body;modal.classList.add('open');document.getElementById('closeModal').focus();}));
-    function closeModal(){modal.classList.remove('open')};document.getElementById('closeModal').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});document.getElementById('year').textContent=new Date().getFullYear();
-  </script>
+    
+<script>
+const search = document.getElementById('search');
+const grid = document.getElementById('articleGrid');
+const empty = document.getElementById('empty');
+const modal = document.getElementById('modal');
+let currentFilter = 'Όλα';
+let cards = [...document.querySelectorAll('.article')];
+
+function applyFilters() {
+  const q = search.value.trim().toLocaleLowerCase('el');
+  let shown = 0;
+
+  cards.forEach(card => {
+    const category = card.dataset.category;
+    const text = (card.dataset.title + ' ' + card.innerText)
+      .toLocaleLowerCase('el');
+    const match =
+      (currentFilter === 'Όλα' || category === currentFilter) &&
+      text.includes(q);
+
+    card.style.display = match ? 'flex' : 'none';
+    if (match) shown++;
+  });
+
+  empty.style.display = shown ? 'none' : 'block';
+}
+
+function openArticle(title, content) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').textContent = content;
+  modal.classList.add('open');
+  document.getElementById('closeModal').focus();
+}
+
+function addArticle(article) {
+  const card = document.createElement('article');
+  card.className = 'article';
+  card.dataset.category = article.category;
+  card.dataset.title = article.title;
+
+  const top = document.createElement('div');
+  top.className = 'article-top';
+
+  const tag = document.createElement('span');
+  tag.className = 'tag';
+  tag.textContent = article.category;
+
+  const date = document.createElement('span');
+  date.className = 'date';
+  date.textContent = article.created_at
+    ? new Date(article.created_at.replace(' ', 'T') + 'Z')
+        .toLocaleDateString('el-GR')
+    : '';
+
+  top.append(tag, date);
+
+  const heading = document.createElement('h3');
+  heading.textContent = article.title;
+
+  const preview = document.createElement('p');
+  preview.textContent = article.content.length > 150
+    ? article.content.slice(0, 150) + '…'
+    : article.content;
+
+  const button = document.createElement('button');
+  button.className = 'read';
+  button.textContent = 'Διάβασε περισσότερα →';
+  button.addEventListener('click', () =>
+    openArticle(article.title, article.content)
+  );
+
+  card.append(top, heading, preview, button);
+  grid.prepend(card);
+
+  // Προσθήκη φίλτρου για κάθε νέα κατηγορία.
+  const filters = document.querySelector('.filters');
+  const exists = [...filters.querySelectorAll('[data-filter]')]
+    .some(btn => btn.dataset.filter === article.category);
+
+  if (!exists) {
+    const filterButton = document.createElement('button');
+    filterButton.dataset.filter = article.category;
+    filterButton.textContent = article.category;
+    filters.append(filterButton);
+  }
+}
+
+function setupFilters() {
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.onclick = () => {
+      currentFilter = btn.dataset.filter;
+      document.querySelectorAll('[data-filter]').forEach(b =>
+        b.classList.toggle('active', b === btn)
+      );
+      applyFilters();
+    };
+  });
+
+  document.querySelectorAll('[data-nav-filter]').forEach(link => {
+    link.onclick = () => {
+      currentFilter = link.dataset.navFilter;
+      document.querySelectorAll('[data-filter]').forEach(btn =>
+        btn.classList.toggle('active',
+          btn.dataset.filter === currentFilter)
+      );
+      applyFilters();
+    };
+  });
+}
+
+search.addEventListener('input', applyFilters);
+
+document.querySelectorAll('[data-open]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const content = document.getElementById(btn.dataset.open);
+    openArticle(content.dataset.heading, content.dataset.body);
+  });
+});
+
+function closeModal() {
+  modal.classList.remove('open');
+}
+
+document.getElementById('closeModal').addEventListener('click', closeModal);
+modal.addEventListener('click', e => {
+  if (e.target === modal) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+document.getElementById('year').textContent = new Date().getFullYear();
+
+async function loadArticles() {
+  try {
+    const response = await fetch('/api/articles');
+
+    if (!response.ok) throw new Error('Αποτυχία φόρτωσης');
+
+    const articles = await response.json();
+
+    if (!Array.isArray(articles)) throw new Error('Μη έγκυρα άρθρα');
+
+    articles.reverse().forEach(addArticle);
+  } catch (error) {
+    console.error('Δεν φορτώθηκαν τα άρθρα:', error);
+  }
+
+  cards = [...document.querySelectorAll('.article')];
+  setupFilters();
+  applyFilters();
+}
+
+setupFilters();
+loadArticles();
+</script>
+
 </body>
 </html>
