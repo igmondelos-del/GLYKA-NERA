@@ -585,6 +585,24 @@ nav a:hover {
       </div>
     </div>
   </header>
+  <section class="wrap" id="weather" style="padding:20px;background:#eaf5ff;border-radius:15px;margin-top:15px">
+  <h2>🌦️ Καιρός στα Γλυκά Νερά</h2>
+  <p id="weather-info">Φόρτωση καιρού...</p>
+</section>
+
+<script>
+fetch("https://api.open-meteo.com/v1/forecast?latitude=37.999&longitude=23.853&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=Europe%2FAthens")
+.then(r => r.json())
+.then(d => {
+  const w = d.current;
+  document.getElementById("weather-info").textContent =
+    `${w.temperature_2m}°C | Υγρασία ${w.relative_humidity_2m}% | Άνεμος ${w.wind_speed_10m} km/h`;
+})
+.catch(() => {
+  document.getElementById("weather-info").textContent =
+    "Ο καιρός δεν είναι προσωρινά διαθέσιμος.";
+});
+</script>
 
   <nav aria-label="Κύρια πλοήγηση">
     <div class="wrap">
