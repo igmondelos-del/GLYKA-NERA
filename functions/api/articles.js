@@ -70,3 +70,25 @@ export async function onRequestPost({ request, env }) {
     );
   }
 }
+export async function onRequestDelete({ request, env }) {
+  try {
+    const password = env.ADMIN_PASSWORD;
+    const data = await request.json();
+
+    if (!password || data.password !== password) {
+      return Response.json({ error: "Λάθος κωδικός." }, { status: 401 });
+    }
+
+    if (!Number.isInteger(data.id)) {
+      return Response.json({ error: "Μη έγκυρο άρθρο." }, { status: 400 });
+    }
+
+    await env.DB.prepare(
+      "DELETE FROM articles WHERE id = ?"
+    ).bind(data.id).run();
+
+    return Response.json({ success: true });
+  } catch {
+    return Response.json({ error: "Αποτυχία διαγραφής." }, { status: 500 });
+  }
+}
