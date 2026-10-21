@@ -595,8 +595,21 @@ fetch("https://api.open-meteo.com/v1/forecast?latitude=37.999&longitude=23.853&c
 .then(r => r.json())
 .then(d => {
   const w = d.current;
-  document.getElementById("weather-info").textContent =
-    `${w.temperature_2m}°C | Υγρασία ${w.relative_humidity_2m}% | Άνεμος ${w.wind_speed_10m} km/h`;
+  const days = d.daily;
+
+  document.getElementById("weather-info").innerHTML =
+    `<h3>🌡️ Τώρα: ${w.temperature_2m}°C</h3>
+    <p>💧 Υγρασία: ${w.relative_humidity_2m}% |
+    💨 Άνεμος: ${w.wind_speed_10m} km/h</p>
+    <h3>📅 Πρόγνωση 7 ημερών</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px">
+    ${days.time.map((day,i) => `
+      <div style="background:white;padding:12px;border-radius:10px;color:#253b80">
+        <b>${new Date(day+"T12:00:00").toLocaleDateString("el-GR",{weekday:"short",day:"numeric",month:"short"})}</b>
+        <p>🌡️ ${days.temperature_2m_max[i]}° / ${days.temperature_2m_min[i]}°</p>
+      </div>
+    `).join("")}
+    </div>`;
 })
 .catch(() => {
   document.getElementById("weather-info").textContent =
