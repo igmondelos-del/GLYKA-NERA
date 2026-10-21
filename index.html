@@ -591,7 +591,7 @@ nav a:hover {
 </section>
 
 <script>
-fetch("https://api.open-meteo.com/v1/forecast?latitude=37.999&longitude=23.853&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FAthens
+fetch("https://api.open-meteo.com/v1/forecast?latitude=37.999&longitude=23.853&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FAthens")
 .then(r => r.json())
 .then(d => {
   const w = d.current;
