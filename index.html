@@ -744,7 +744,18 @@ nav a:hover {
         : '';
 
       top.append(tag, date);
-
+if (article.image) {
+  const img = document.createElement('img');
+  img.src = article.image;
+  img.alt = article.title;
+  img.loading = 'lazy';
+  img.style.width = '100%';
+  img.style.maxHeight = '250px';
+  img.style.objectFit = 'cover';
+  img.style.borderRadius = '12px';
+  img.style.marginBottom = '12px';
+  card.appendChild(img);
+}
       const heading = document.createElement('h3');
       heading.textContent = article.title;
 
