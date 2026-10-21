@@ -2,113 +2,135 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Διαχείριση | ΓΛΥΚΑ ΝΕ (Ρ) Α</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f8;
-      margin: 0;
-      padding: 24px;
-      color: #172554;
-    }
-    main {
-      max-width: 650px;
-      margin: 30px auto;
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 5px 22px #0001;
-    }
-    h1 { color: #b91c1c; }
-    label { display: block; margin-top: 16px; font-weight: bold; }
-    input, textarea, select {
-      box-sizing: border-box;
-      width: 100%;
-      margin-top: 7px;
-      padding: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font: inherit;
-    }
-    textarea { min-height: 180px; resize: vertical; }
-    button {
-      margin-top: 20px;
-      padding: 13px 18px;
-      background: #b91c1c;
-      color: white;
-      border: 0;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    #status { white-space: pre-wrap; margin-top: 16px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Διαχείριση | ΓΛΥΚΑ ΝΕ (Ρ) Α</title>
+<style>
+body{font-family:Arial;background:#eef5ff;margin:0;padding:20px;color:#172554}
+main{max-width:700px;margin:20px auto;background:white;padding:24px;border-radius:18px;box-shadow:0 5px 22px #0001}
+h1{color:#253b80}
+label{display:block;margin-top:15px;font-weight:bold}
+input,textarea,select{box-sizing:border-box;width:100%;margin-top:7px;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}
+textarea{min-height:150px}
+button{padding:11px 15px;border:0;border-radius:8px;cursor:pointer;font-size:15px;margin:10px 5px 0 0;background:#253b80;color:white}
+.delete{background:#ef233c}
+.article{border:1px solid #dce6ed;border-left:5px solid #ff9f1c;border-radius:10px;padding:14px;margin-top:12px;overflow-wrap:anywhere}
+#status{white-space:pre-wrap}
+</style>
 </head>
 <body>
 <main>
-  <h1>📰 Διαχειριστής εφημερίδας</h1>
-  <p>ΓΛΥΚΑ ΝΕ (Ρ) Α — Νέο άρθρο</p>
+<h1>📰 Διαχειριστής εφημερίδας</h1>
+<p>ΓΛΥΚΑ ΝΕ (Ρ) Α</p>
 
-  <form id="articleForm">
-    <label for="password">Κωδικός διαχειριστή</label>
-    <input id="password" type="password" required
-      autocomplete="current-password">
+<label for="password">Κωδικός διαχειριστή</label>
+<input id="password" type="password" autocomplete="current-password" required>
 
-    <label for="title">Τίτλος άρθρου</label>
-    <input id="title" maxlength="150" required>
+<form id="articleForm">
+<label for="title">Τίτλος άρθρου</label>
+<input id="title" maxlength="150" required>
 
-    <label for="category">Κατηγορία</label>
-    <select id="category" required>
-      <option value="Τοπικά νέα">Τοπικά νέα</option>
-      <option value="Σχολείο">Σχολείο</option>
-      <option value="Αθλητισμός">Αθλητισμός</option>
-      <option value="Πολιτισμός">Πολιτισμός</option>
-      <option value="Άλλα νέα">Άλλα νέα</option>
-    </select>
+<label for="category">Κατηγορία</label>
+<select id="category">
+<option>Τοπικά νέα</option>
+<option>Σχολείο</option>
+<option>Αθλητισμός</option>
+<option>Πολιτισμός</option>
+<option>Άλλα νέα</option>
+</select>
 
-    <label for="content">Κείμενο άρθρου</label>
-    <textarea id="content" maxlength="20000" required></textarea>
+<label for="content">Κείμενο άρθρου</label>
+<textarea id="content" maxlength="20000" required></textarea>
+<button type="submit">📝 Δημοσίευση άρθρου</button>
+</form>
 
-    <button type="submit">Δημοσίευση άρθρου</button>
-  </form>
-
-  <p id="status" role="status"></p>
+<p id="status" role="status"></p>
+<hr>
+<h2>🗑️ Διαχείριση άρθρων</h2>
+<button type="button" onclick="loadArticles()">🔄 Ανανέωση λίστας</button>
+<div id="articles">Πάτησε «Ανανέωση λίστας».</div>
 </main>
 
 <script>
-const form = document.getElementById("articleForm");
-const statusBox = document.getElementById("status");
+const $ = id => document.getElementById(id);
+const statusBox = $("status");
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  statusBox.textContent = "Γίνεται δημοσίευση...";
-
-  try {
-    const response = await fetch("/api/articles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        password: document.getElementById("password").value,
-        title: document.getElementById("title").value,
-        category: document.getElementById("category").value,
-        content: document.getElementById("content").value
-      })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Η δημοσίευση απέτυχε.");
-    }
-
-    statusBox.textContent = "✅ Το άρθρο αποθηκεύτηκε!";
-    form.reset();
-  } catch (error) {
-    statusBox.textContent = "❌ " + error.message;
-  }
+$("articleForm").addEventListener("submit", async event => {
+event.preventDefault();
+statusBox.textContent = "Γίνεται δημοσίευση...";
+try {
+const response = await fetch("/api/articles", {
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+password:$("password").value,
+title:$("title").value,
+category:$("category").value,
+content:$("content").value
+})
 });
+const result = await response.json();
+if (!response.ok) throw new Error(result.error || "Αποτυχία δημοσίευσης.");
+statusBox.textContent = "✅ Το άρθρο δημοσιεύτηκε!";
+$("articleForm").reset();
+loadArticles();
+} catch(error) {
+statusBox.textContent = "❌ " + error.message;
+}
+});
+
+async function loadArticles() {
+$("articles").textContent = "Φόρτωση...";
+try {
+const response = await fetch("/api/articles");
+const data = await response.json();
+if (!response.ok || !Array.isArray(data)) throw new Error("Αποτυχία φόρτωσης.");
+$("articles").replaceChildren();
+if (!data.length) {
+$("articles").textContent = "Δεν υπάρχουν άρθρα.";
+return;
+}
+data.forEach(article => {
+const item = document.createElement("div");
+item.className = "article";
+const title = document.createElement("strong");
+title.textContent = article.title;
+const info = document.createElement("p");
+info.textContent = article.category + " • " + (article.created_at || "");
+const del = document.createElement("button");
+del.className = "delete";
+del.textContent = "🗑️ Διαγραφή";
+del.onclick = () => deleteArticle(article.id, article.title);
+item.append(title, info, del);
+$("articles").append(item);
+});
+} catch(error) {
+$("articles").textContent = "❌ " + error.message;
+}
+}
+
+async function deleteArticle(id, title) {
+if (!$("password").value) {
+alert("Βάλε πρώτα τον κωδικό διαχειριστή.");
+return;
+}
+if (!confirm('Να διαγραφεί το άρθρο "' + title + '";')) return;
+try {
+const response = await fetch("/api/articles", {
+method:"DELETE",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({password:$("password").value,id:Number(id)})
+});
+const result = await response.json();
+if (!response.ok) throw new Error(result.error || "Αποτυχία διαγραφής.");
+statusBox.textContent = "✅ Το άρθρο διαγράφηκε.";
+loadArticles();
+} catch(error) {
+statusBox.textContent = "❌ " + error.message;
+}
+}
+
+loadArticles();
 </script>
 </body>
 </html>
