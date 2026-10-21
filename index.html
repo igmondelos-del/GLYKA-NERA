@@ -124,10 +124,33 @@ nav a {
 }
     }
 
-    nav .wrap {
-      display: flex;
-      gap: 4px;
-      overflow: auto;
+   nav .wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 17px;
+  border-radius: 10px;
+  text-decoration: none;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: .95rem;
+  transition: background .2s, transform .2s;
+}
+
+nav a:hover {
+  background: #1976a8;
+  transform: translateY(-2px);
+}
     }
 
     nav a {
