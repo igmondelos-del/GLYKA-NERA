@@ -885,7 +885,102 @@ if (article.image) {
 
     setupFilters();
     loadArticles();
-  </script>
+  </s
+<section id="football-results" style="max-width:1000px;margin:25px auto;padding:20px;background:#fff8e8;border-radius:16px">
+  <h2 style="color:#d62828">⚽ Τα Γήπεδα των Γλυκών Νερών</h2>
+  <p>Αποτελέσματα και επόμενοι αγώνες από την ΕΠΣΑΝΑ</p>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
+    <button onclick="showFootball('all')" style="padding:10px;border:0;border-radius:8px;background:#d62828;color:white">Όλες οι ομάδες</button>
+    <button onclick="showFootball('ΑΟ Γλυκών Νερών')" style="padding:10px;border:0;border-radius:8px;background:#fcbf49">ΑΟ Γλυκών Νερών</button>
+    <button onclick="showFootball('Αστέρας Γλυκών Νερών')" style="padding:10px;border:0;border-radius:8px;background:#457b9d;color:white">Αστέρας</button>
+  </div>
+
+  <div id="football-list">Φόρτωση αποτελεσμάτων...</div>
+  <p style="font-size:12px;color:#666">Πηγή: ΕΠΣΑΝΑ · Αυτόματη ανανέωση ανά 5 λεπτά</p>
+</section>
+
+<script>
+let footballData = [];
+let footballFilter = 'all';
+
+async function loadFootball() {
+  const box = document.getElementById('football-list');
+  try {
+    const response = await fetch('/api/epsana');
+    if (!response.ok) throw new Error('Σφάλμα φόρτωσης');
+    footballData = await response.json();
+    showFootball(footballFilter);
+  } catch {
+    box.textContent = 'Δεν ήταν δυνατή η φόρτωση. Δοκίμασε ξανά αργότερα.';
+  }
+}
+
+function showFootball(filter) {
+  footballFilter = filter;
+  const box = document.getElementById('football-list');
+  box.replaceChildren();
+
+  const teams = footballData.filter(t =>
+    filter === 'all' || t.team === filter
+  );
+
+  if (!teams.length) {
+    box.textContent = 'Δεν βρέθηκαν αποτελέσματα.';
+    return;
+  }
+
+  teams.forEach(team => {
+    const heading = document.createElement('h3');
+    heading.textContent = team.team;
+    heading.style.color = '#1d3557';
+    box.appendChild(heading);
+
+    const games = team.games
+      .filter(g => g.result || g.date)
+      .sort((a, b) => {
+        const da = a.date ? a.date.split('/').reverse().join('-') : '9999';
+        const db = b.date ? b.date.split('/').reverse().join('-') : '9999';
+        return db.localeCompare(da);
+      })
+      .slice(0, 10);
+
+    if (!games.length) {
+      const p = document.createElement('p');
+      p.textContent = 'Δεν υπάρχουν διαθέσιμοι αγώνες.';
+      box.appendChild(p);
+    }
+
+    games.forEach(game => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:white;padding:12px;margin:8px 0;border-radius:10px;border-left:4px solid #fcbf49';
+
+      const match = document.createElement('strong');
+      match.textContent = game.match;
+      card.appendChild(match);
+
+      const details = document.createElement('p');
+      details.style.margin = '6px 0 0';
+      details.textContent =
+        (game.date || 'Ημερομηνία εκκρεμεί') +
+        (game.time ? ' · ' + game.time : '') +
+        ' · ' + (game.result || 'Προσεχώς');
+      card.appendChild(details);
+
+      const category = document.createElement('small');
+      category.textContent = game.category;
+      category.style.color = '#666';
+      card.appendChild(category);
+
+      box.appendChild(card);
+    });
+  });
+}
+
+loadFootball();
+setInterval(loadFootball, 300000);
+</script>
+  
 </body>
 </html>
 
