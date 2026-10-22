@@ -886,23 +886,68 @@ if (article.image) {
     setupFilters();
     loadArticles();
   </script>
+
 <section id="football-results" style="max-width:1000px;margin:25px auto;padding:20px;background:#fff8e8;border-radius:16px">
-  <h2 style="color:#d62828">⚽ Τα Γήπεδα των Γλυκών Νερών</h2>
-  <p>Αποτελέσματα και επόμενοι αγώνες από την ΕΠΣΑΝΑ</p>
+  <h2 style="color:#d62828">🏆 Τα Αθλητικά των Γλυκών Νερών</h2>
 
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
-    <button onclick="showFootball('all')" style="padding:10px;border:0;border-radius:8px;background:#d62828;color:white">Όλες οι ομάδες</button>
-    <button onclick="showFootball('ΑΟ Γλυκών Νερών')" style="padding:10px;border:0;border-radius:8px;background:#fcbf49">ΑΟ Γλυκών Νερών</button>
-    <button onclick="showFootball('Αστέρας Γλυκών Νερών')" style="padding:10px;border:0;border-radius:8px;background:#457b9d;color:white">Αστέρας</button>
+  <button id="sports-toggle" onclick="toggleSports()" style="padding:12px 18px;border:0;border-radius:10px;background:#d62828;color:white;font-weight:bold;cursor:pointer">
+    ▼ Εμφάνιση αθλητικών
+  </button>
+
+  <div id="sports-content" hidden>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
+      <button onclick="showSportsPanel('football')" style="padding:10px;border:0;border-radius:8px;background:#fcbf49;cursor:pointer">⚽ Αγώνες</button>
+      <button onclick="showSportsPanel('standings')" style="padding:10px;border:0;border-radius:8px;background:#2a9d8f;color:white;cursor:pointer">📊 Βαθμολογία</button>
+      <button onclick="showSportsPanel('basketball')" style="padding:10px;border:0;border-radius:8px;background:#457b9d;color:white;cursor:pointer">🏀 Μπάσκετ</button>
+      <button onclick="showSportsPanel('volleyball')" style="padding:10px;border:0;border-radius:8px;background:#9b5de5;color:white;cursor:pointer">🏐 Βόλεϊ</button>
+    </div>
+
+    <div id="panel-football">
+      <h3>⚽ Αγώνες και αποτελέσματα</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
+        <button onclick="showFootball('all')">Όλες οι ομάδες</button>
+        <button onclick="showFootball('ΑΟ Γλυκών Νερών')">ΑΟ Γλυκών Νερών</button>
+        <button onclick="showFootball('Αστέρας Γλυκών Νερών')">Αστέρας</button>
+      </div>
+      <div id="football-list">Φόρτωση αποτελεσμάτων...</div>
+      <p style="font-size:12px;color:#666">Πηγή: ΕΠΣΑΝΑ · Ανανέωση ανά 5 λεπτά</p>
+    </div>
+
+    <div id="panel-standings" hidden>
+      <h3>📊 Βαθμολογία</h3>
+      <p>Δεν έχει συνδεθεί ακόμη με επίσημα δεδομένα βαθμολογίας. Δεν εμφανίζουμε ανεπιβεβαίωτους βαθμούς.</p>
+    </div>
+
+    <div id="panel-basketball" hidden>
+      <h3>🏀 Μπάσκετ</h3>
+      <p>Η ενότητα θα ενεργοποιηθεί όταν συνδεθεί με επίσημα αποτελέσματα μπάσκετ.</p>
+    </div>
+
+    <div id="panel-volleyball" hidden>
+      <h3>🏐 Βόλεϊ</h3>
+      <p>Η ενότητα θα ενεργοποιηθεί όταν συνδεθεί με επίσημα αποτελέσματα βόλεϊ.</p>
+    </div>
   </div>
-
-  <div id="football-list">Φόρτωση αποτελεσμάτων...</div>
-  <p style="font-size:12px;color:#666">Πηγή: ΕΠΣΑΝΑ · Αυτόματη ανανέωση ανά 5 λεπτά</p>
 </section>
 
 <script>
 let footballData = [];
 let footballFilter = 'all';
+
+function toggleSports() {
+  const content = document.getElementById('sports-content');
+  const button = document.getElementById('sports-toggle');
+  content.hidden = !content.hidden;
+  button.textContent = content.hidden
+    ? '▼ Εμφάνιση αθλητικών'
+    : '▲ Απόκρυψη αθλητικών';
+}
+
+function showSportsPanel(panel) {
+  ['football', 'standings', 'basketball', 'volleyball'].forEach(name => {
+    document.getElementById('panel-' + name).hidden = name !== panel;
+  });
+}
 
 async function loadFootball() {
   const box = document.getElementById('football-list');
@@ -912,7 +957,7 @@ async function loadFootball() {
     footballData = await response.json();
     showFootball(footballFilter);
   } catch {
-    box.textContent = 'Δεν ήταν δυνατή η φόρτωση. Δοκίμασε ξανά αργότερα.';
+    box.textContent = 'Δεν ήταν δυνατή η φόρτωση των αποτελεσμάτων. Δοκίμασε ξανά αργότερα.';
   }
 }
 
@@ -921,8 +966,8 @@ function showFootball(filter) {
   const box = document.getElementById('football-list');
   box.replaceChildren();
 
-  const teams = footballData.filter(t =>
-    filter === 'all' || t.team === filter
+  const teams = footballData.filter(team =>
+    filter === 'all' || team.team === filter
   );
 
   if (!teams.length) {
@@ -936,12 +981,17 @@ function showFootball(filter) {
     heading.style.color = '#1d3557';
     box.appendChild(heading);
 
-    const games = team.games
-      .filter(g => g.result || g.date)
+    const games = (team.games || [])
+      .filter(game => game.result || game.date)
       .sort((a, b) => {
-        const da = a.date ? a.date.split('/').reverse().join('-') : '9999';
-        const db = b.date ? b.date.split('/').reverse().join('-') : '9999';
-        return db.localeCompare(da);
+        function dateValue(value) {
+          if (!value) return '';
+          const parts = value.split('/');
+          return parts.length === 3
+            ? parts[2] + parts[1] + parts[0]
+            : value;
+        }
+        return dateValue(b.date).localeCompare(dateValue(a.date));
       })
       .slice(0, 10);
 
@@ -956,11 +1006,11 @@ function showFootball(filter) {
       card.style.cssText = 'background:white;padding:12px;margin:8px 0;border-radius:10px;border-left:4px solid #fcbf49';
 
       const match = document.createElement('strong');
-      match.textContent = game.match;
+      match.textContent = game.match || 'Αγώνας';
       card.appendChild(match);
 
       const details = document.createElement('p');
-      details.style.margin = '6px 0 0';
+      details.style.margin = '6px 0';
       details.textContent =
         (game.date || 'Ημερομηνία εκκρεμεί') +
         (game.time ? ' · ' + game.time : '') +
@@ -968,10 +1018,9 @@ function showFootball(filter) {
       card.appendChild(details);
 
       const category = document.createElement('small');
-      category.textContent = game.category;
+      category.textContent = game.category || '';
       category.style.color = '#666';
       card.appendChild(category);
-
       box.appendChild(card);
     });
   });
@@ -980,6 +1029,7 @@ function showFootball(filter) {
 loadFootball();
 setInterval(loadFootball, 300000);
 </script>
+
   
 </body>
 </html>
